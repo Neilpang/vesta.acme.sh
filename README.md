@@ -18,6 +18,8 @@ chmod +x vesta.acme.sh
 
 ```
 
+Once the certificate is generated,  it will be renewed automatically in future.  Just forget it.
+
 
 #Upgrade acme.sh
 
