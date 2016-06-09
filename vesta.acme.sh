@@ -51,11 +51,13 @@ addssl() {
     sans=""
   fi
   
-  if ! (
+  (
     $ACME_ENTRY  --issue  --apache \
     -d "$site" \
     -d "$sans"
-  ) ; then
+  )
+  _ret="$?"
+  if [ "$_ret" != "0" ] && [ "$_ret" != "2" ] ; then
     echo "Issue cert failed!"
     return 1
   fi
