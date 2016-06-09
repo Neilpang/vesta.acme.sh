@@ -47,11 +47,14 @@ addssl() {
   
   sans="$(echo $list | cut -d " " -f 2)"
   
-  (
+  if ! (
     $ACME_ENTRY  --issue  --apache \
     -d "$site" \
     -d "$sans"
-  )
+  ) ; then
+    echo "Issue cert failed!"
+    return 1
+  fi
   
   
   
