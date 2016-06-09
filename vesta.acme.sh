@@ -46,7 +46,8 @@ addssl() {
   fi
   
   sans="$(echo $list | cut -d " " -f 2)"
-  if [ "NULL" == "$sans" ] ; then
+  
+  if [ "NULL" = "$sans" ] ; then
     sans=""
   fi
   
