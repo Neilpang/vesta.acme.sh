@@ -46,6 +46,9 @@ addssl() {
   fi
   
   sans="$(echo $list | cut -d " " -f 2)"
+  if [ "NULL" == "$sans" ] ; then
+    sans=""
+  fi
   
   if ! (
     $ACME_ENTRY  --issue  --apache \
