@@ -11,6 +11,7 @@ ACME_ENTRY="$HOME/.acme.sh/acme.sh"
 
 if [ -z "$VESTA" ] ; then
   VESTA="/usr/local/vesta"
+  export VESTA
 fi
 
 
