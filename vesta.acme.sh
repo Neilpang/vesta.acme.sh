@@ -53,7 +53,7 @@ addssl() {
   fi
   
   (
-    $ACME_ENTRY  --issue  --apache \
+    $ACME_ENTRY  --issue  -w /home/$user/web/$site/public_html \
     -d "$site" \
     -d "$sans"
   )
