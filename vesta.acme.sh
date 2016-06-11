@@ -92,7 +92,7 @@ showhelp() {
   echo "Usage: "
   echo "install : install acme.sh"
   echo "upgrade : upgrade acme.sh"
-  echo "addssl : addssl acme.sh"
+  echo "addssl : add ssl to a plain site"
 
 }
 
