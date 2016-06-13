@@ -81,7 +81,7 @@ addssl() {
     --keypath   /home/$user/conf/web/ssl.$site.key \
     --capath    /home/$user/conf/web/ssl.$site.ca \
     --fullchainpath  /home/$user/conf/web/ssl.$site.pem \
-    --reloadcmd "apachectl  -k  graceful && service nginx reload"
+    --reloadcmd "service nginx reload; apachectl graceful || true"
   )
 
 }
