@@ -40,17 +40,18 @@ addssl() {
     return 1
   fi
   
-  list="$($VESTA/bin/v-list-web-domains-alias $user | grep "^$site ")"
+  list=$($VESTA/bin/v-list-web-domain $user "$site" | grep '^ALIAS' | cut -d: -f 2)
   if [ -z "$list" ] ; then
     echo "Can not find site: $site"
     return 1
   fi
   
-  sans="$(echo $list | cut -d " " -f 2)"
-  
-  if [ "NULL" = "$sans" ] ; then
+  if [ "NULL" = "$list" ] ; then
     sans=""
+  else
+    sans="$(echo $list | tr ' ' ,)"
   fi
+
   
   (
     $ACME_ENTRY  --issue  -w /home/$user/web/$site/public_html \
