@@ -20,16 +20,26 @@ upgrade() {
   install
 }
 
+#parse domain
 CAIssue() {
+  user="$1"
+
+  if [ -z "$user" ] ; then
+    echo "Run the script like this\n"
+    echo "./vesta.acme.sh CAIssue mydomain.com"
+    return 1
+  fi
+
   ($ACME_ENTRY --issue -d $1 -d *.$1 --dns --force --yes-I-know-dns-manual-mode-enough-go-ahead-please --debug)
 }
 
 CARenew() {
   user="$1"
   site="$2"
-  
-  if [ -z "$site" ] ; then
-    echo "Usage: addssl user site"
+
+  if [ -z "$user" ] || [ -z "$site" ] ; then
+    echo "Run the script like this\n"
+    echo "./vesta.acme.sh CARenew user mydomain.com"
     return 1
   fi
 
@@ -41,12 +51,18 @@ CARenew() {
     return 1
   fi
     
-  installCert
+  installCert $user $site
 }
 
 installCert() {
   user="$1"
   site="$2"
+
+  if [ -z "$user" ] || [ -z "$site" ] ; then
+    echo "Run the script like this\n"
+    echo "./vesta.acme.sh installCert user mydomain.com"
+    return 1
+  fi
 
   tempcer="tempcer"
   mkdir "$tempcer"
@@ -137,6 +153,7 @@ showhelp() {
 
   echo "sample ./vesta.acme.sh CAIssue <domain.com>"
   echo "sample ./vesta.acme.sh CARenew <user> <domain.com>"
+  echo "sample ./vesta.acme.sh installCert <user> <domain.com>"
 }
 
 if [ -z "$1" ] ; then
