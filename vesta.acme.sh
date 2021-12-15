@@ -113,10 +113,15 @@ CAAuto() {
     echo "Done."
   fi
 
-  #TODO: check domain aliases
+  echo "Check domain aliases, looking for *.domain.com"
 
-  #* add aliases 
-  /usr/local/vesta/bin/v-add-web-domain-alias $user $site *.$site
+  ALIASES=$(/usr/local/vesta/bin/v-list-web-domain $user $domain | grep "*")
+
+  if [ ! ALIASES ]; then
+    echo "Adding * aliases"
+    #* add aliases 
+    /usr/local/vesta/bin/v-add-web-domain-alias $user $site *.$site
+  fi
 
   STEPONE=$(CAIssue $site | grep "txt='" | awk -F= '{ print $2 }' | sed "s/[']//g") 
 
