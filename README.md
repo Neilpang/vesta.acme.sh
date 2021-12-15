@@ -25,15 +25,22 @@ Once the certificate is generated, it will be renewed automatically in future. J
 ./vesta.acme.sh  upgrade
 ```
 
-#Install CA cert
+#Install CA cert manually
 First in VistaCp panel ser `*.<domain.com>` save it.
 
 
 1) `./vesta.acme.sh CAIssue mydomain.com`
-
-If you have DNS part activated for your domain simply run first step and yet. If not see next steps.
-
 2) `./vesta.acme.sh CARenew user mydomain.com`
 2-1) Have error and script tell you what you need recreate on DNS `_acme-chellenge` as TXT with hash.
 2-2) Wait 5 mins and run it again.
-1) if not installed use this script `./vesta.acme.sh installCert user mydomain.com`
+3) if not installed use this script `./vesta.acme.sh installCert user mydomain.com`
+
+
+#Install CA cert Auto
+
+Run `./vesta.acme.sh CAAuto user mydomain.com`
+
+
+### DOCS
+
+VestaCP Shell: [https://github.com/serghey-rodin/vesta/blob/master/bin/v-add-dns-record]

@@ -20,39 +20,7 @@ upgrade() {
   install
 }
 
-#parse domain
-CAIssue() {
-  user="$1"
-
-  if [ -z "$user" ] ; then
-    echo "Run the script like this\n"
-    echo "./vesta.acme.sh CAIssue mydomain.com"
-    return 1
-  fi
-
-  ($ACME_ENTRY --issue -d $1 -d *.$1 --dns --force --yes-I-know-dns-manual-mode-enough-go-ahead-please --debug)
-}
-
-CARenew() {
-  user="$1"
-  site="$2"
-
-  if [ -z "$user" ] || [ -z "$site" ] ; then
-    echo "Run the script like this\n"
-    echo "./vesta.acme.sh CARenew user mydomain.com"
-    return 1
-  fi
-
-  ($ACME_ENTRY --renew  -d "$site" -d "*.$site" --dns --force --yes-I-know-dns-manual-mode-enough-go-ahead-please)
- 
-  _ret="$?"
-  if [ "$_ret" != "0" ] && [ "$_ret" != "2" ] ; then
-    echo "Issue cert failed!"
-    return 1
-  fi
-    
-  installCert $user $site
-}
+## MANUAL PART ---------------------
 
 installCert() {
   user="$1"
@@ -83,6 +51,106 @@ installCert() {
     --reloadcmd "service nginx force-reload && apachectl graceful"
   )
 }
+
+#parse domain
+CAIssue() {
+  site="$"
+
+  if [ -z "$site" ] ; then
+    echo "Run the script like this\n"
+    echo "./vesta.acme.sh CAIssue mydomain.com"
+    return 1
+  fi
+
+  ($ACME_ENTRY --issue -d $site -d *.$site --dns --force --yes-I-know-dns-manual-mode-enough-go-ahead-please --debug)
+}
+
+CARenew() {
+  user="$1"
+  site="$2"
+
+  if [ -z "$user" ] || [ -z "$site" ] ; then
+    echo "Run the script like this\n"
+    echo "./vesta.acme.sh CARenew user mydomain.com"
+    return 1
+  fi
+
+  ($ACME_ENTRY --renew  -d "$site" -d "*.$site" --dns --force --yes-I-know-dns-manual-mode-enough-go-ahead-please)
+ 
+  _ret="$?"
+  if [ "$_ret" != "0" ] && [ "$_ret" != "2" ] ; then
+    echo "Issue cert failed!"
+    return 1
+  fi
+    
+  installCert $user $site
+}
+
+## MANUAL PART ---------------------
+
+## AUTO PART ---------------------
+
+CAAuto() {
+  user="$1"
+  site="$2"
+
+  if [ -z "$user" ] || [ -z "$site" ] ; then
+    echo "Run the script like this\n"
+    echo "./vesta.acme.sh CAAuto user mydomain.com"
+    return 1
+  fi
+
+  #check dns for challenge
+  CH=$(/usr/local/vesta/bin/v-list-dns-records $user $site | "grep _acme-challenge" | awk '{ print $1 }' )
+
+  if [ CH ] ; then
+    echo "First cleaning old challenges"
+
+    for rline in $CH; do
+      /usr/local/vesta/bin/v-delete-dns-record $user $site $rline
+    done
+
+    echo "Done."
+  fi
+
+  #TODO: check domain aliases
+
+  #* add aliases 
+  /usr/local/vesta/bin/v-add-web-domain-alias $user $site *.$site
+
+  STEPONE=$(CAIssue $site | grep "txt='" | awk -F= '{ print $2 }' | sed "s/[']//g") 
+
+  if [ ! $STEPONE ] ; then
+    echo "Run it again."
+    return 1
+  fi
+
+  echo "Backup you DNS config"
+  cp /home/$user/conf/dns/$site.db /home/$user/conf/dns/$site.db_back
+
+  echo "Get challenge hash adding to your DNS zone."
+
+  #add to dns
+  for line in $O; do
+    echo -e "_acme-challenge\t14400\tIN\tTXT\t\"$line\"" >> /home/$user/conf/dns/$site.db 
+  done
+
+  /usr/local/vesta/bin/v-insert-dns-records $user $site /home/$user/conf/dns/$site.db
+
+  echo "Ok. DNS Zone applyed, now wait 2 mins for propagation. And continue with the process..."
+  wait 120
+
+  FINALSTEP=$(CARenew $user $site | grep "BEGIN CERTIFICATE")
+
+  #TODO: cehck this part for 
+  if [ $FINALSTEP ]; then
+    echo "Installing Cert"
+    installCert $user $site
+    return 1
+  fi
+}
+
+## AUTO PART ---------------------
 
 addssl() {
   user="$1"
@@ -130,8 +198,7 @@ addssl() {
     return 1
   fi
     
-  installCert
-
+  installCert $user $site
 }
 
 showhelp() {
@@ -151,9 +218,13 @@ showhelp() {
 
   echo "\n-----\n"
 
+  echo "MANUAL CA"
   echo "sample ./vesta.acme.sh CAIssue <domain.com>"
   echo "sample ./vesta.acme.sh CARenew <user> <domain.com>"
   echo "sample ./vesta.acme.sh installCert <user> <domain.com>"
+
+  echo "ATUO CA"
+  echo "sample ./vesta.acme.sh CAAuto <user> <domain.com>"
 }
 
 if [ -z "$1" ] ; then
